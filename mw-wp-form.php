@@ -248,7 +248,6 @@ class MW_WP_Form {
 			MW_WP_Form_Directory::remove( MW_WP_Form_Directory::get( false ) );
 		} catch ( \Exception $e ) {
 			error_log( $e->getMessage() );
-			return false;
 		}
 
 		delete_option( MWF_Config::NAME );
