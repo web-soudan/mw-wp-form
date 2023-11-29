@@ -74,6 +74,7 @@ class MW_WP_Form_File {
 			}
 		} catch ( \Exception $e ) {
 			error_log( $e->getMessage() );
+			return false;
 		}
 
 		try {
@@ -83,6 +84,7 @@ class MW_WP_Form_File {
 			}
 		} catch ( \Exception $e ) {
 			error_log( $e->getMessage() );
+			return false;
 		}
 
 		MW_WP_Form_Directory::do_empty( $new_user_file_dir, true );
@@ -96,6 +98,7 @@ class MW_WP_Form_File {
 			}
 		} catch ( \Exception $e ) {
 			error_log( $e->getMessage() );
+			return false;
 		}
 
 		return $filename;

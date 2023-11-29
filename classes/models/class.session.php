@@ -46,7 +46,7 @@ class MW_WP_Form_Session {
 				set_error_handler( array( 'MW_WP_Form_Session', 'error_handler' ) );
 				setcookie( $this->name, $session_id, 0, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
 			} catch ( ErrorException $e ) {
-				// No process...
+				return false;
 			}
 		}
 
