@@ -10,7 +10,7 @@
  */
 class MW_WP_Form_Csrf {
 
-	const KEY = '_mw-wp-form-token';
+	const KEY = 'mw-wp-form-token';
 
 	/**
 	 * @var string
