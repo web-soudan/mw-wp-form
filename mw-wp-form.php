@@ -259,7 +259,6 @@ class MW_WP_Form {
 			MW_WP_Form_Directory::do_empty( MW_WP_Form_Directory::get() );
 		} catch ( \Exception $e ) {
 			error_log( $e->getMessage() );
-			return false;
 		}
 	}
 }
