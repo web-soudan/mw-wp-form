@@ -6,6 +6,7 @@ _tests
 .gitignore
 .svnignore
 .distignore
+.wordpress-org
 phpunit.xml.dist
 phpcs.ruleset.xml
 vendor
