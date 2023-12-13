@@ -2,9 +2,9 @@
 Contributors: inc2734, ryu263, tomothumb, nanniku, mt8.biz, NExt-Season, kuck1u, mypacecreator, mh35, grace-create, musus, wildworks, likr, yudai524, noldorinfo
 Original Donate link: https://www.amazon.co.jp/registry/wishlist/39ANKRNSTNW40
 Tags: plugin, form, confirm, preview, shortcode, mail, chart, graph, html, contact form, form creation, form creator, form manager, form builder, custom form
-Requires at least: 4.0
+Requires at least: 6.0
 Tested up to: 6.4
-Stable tag: 5.0.4
+Stable tag: 5.0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -79,6 +79,9 @@ Do you have questions or issues with MW WP Form? Use these support channels appr
 5. Supports chart display of saved inquiry data.
 
 == Changelog ==
+
+= 5.0.5 =
+* Changed requirements to PHP 8.0, WordPress 6.0
 
 = 5.0.4 =
 * Fixed Delete only attachments.
