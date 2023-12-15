@@ -3,9 +3,8 @@
  * Plugin Name: MW WP Form
  * Plugin URI: https://mw-wp-form.web-soudan.co.jp
  * Description: MW WP Form is shortcode base contact form plugin. This plugin have many features. For example you can use many validation rules, inquiry data saving, and chart aggregation using saved inquiry data.
- * Version: 5.0.5
+ * Version: 5.0.6
  * Requires at least: 6.0
- * Requires PHP: 8.0
  * Author: websoudan
  * Author URI: https://web-soudan.co.jp/
  * Original Author: inc2734
@@ -216,6 +215,7 @@ class MW_WP_Form {
 		$plugin_dir_path = plugin_dir_path( __FILE__ );
 		include_once( $plugin_dir_path . 'classes/models/class.admin.php' );
 		include_once( $plugin_dir_path . 'classes/models/class.file.php' );
+		include_once( $plugin_dir_path . 'classes/models/class.directory.php' );
 
 		$admin = new MW_WP_Form_Admin();
 		$forms = $admin->get_forms();
