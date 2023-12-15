@@ -216,6 +216,7 @@ class MW_WP_Form {
 		$plugin_dir_path = plugin_dir_path( __FILE__ );
 		include_once( $plugin_dir_path . 'classes/models/class.admin.php' );
 		include_once( $plugin_dir_path . 'classes/models/class.file.php' );
+		include_once( $plugin_dir_path . 'classes/models/class.directory.php' );
 
 		$admin = new MW_WP_Form_Admin();
 		$forms = $admin->get_forms();
