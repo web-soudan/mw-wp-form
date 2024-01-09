@@ -43,7 +43,7 @@ class MWF_Functions {
 	/**
 	 * Unify line feed code to \n.
 	 *
-	 * @param sring $string String.
+	 * @param string $string String.
 	 * @return string
 	 */
 	public static function convert_eol( $string ) {
