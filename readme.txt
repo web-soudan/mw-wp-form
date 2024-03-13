@@ -4,7 +4,7 @@ Original Donate link: https://www.amazon.co.jp/registry/wishlist/39ANKRNSTNW40
 Tags: plugin, form, confirm, preview, shortcode, mail, chart, graph, html, contact form, form creation, form creator, form manager, form builder, custom form
 Requires at least: 6.0
 Tested up to: 6.4
-Stable tag: 5.0.7
+Stable tag: 5.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,7 +80,7 @@ Do you have questions or issues with MW WP Form? Use these support channels appr
 
 == Changelog ==
 
-= 5.0.7 =
+= 5.1.0 =
 * Security Use wp_kses_post to form content/complete message
 
 = 5.0.6 =
