@@ -118,6 +118,9 @@ class MW_WP_Form_Exec_Shortcode {
 			$form_field->initialize( new MW_WP_Form_Form(), $this->form_key, $this->view_flg );
 		}
 
+		// Sanitizes content for allowed HTML tags for post content.
+		$content = wp_kses_post( $content );
+
 		return do_shortcode( $content );
 	}
 
