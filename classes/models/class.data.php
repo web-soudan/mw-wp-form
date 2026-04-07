@@ -607,8 +607,17 @@ class MW_WP_Form_Data {
 		foreach ( $upload_file_keys as $key => $upload_file_key ) {
 			$upload_filename = $this->get_post_value_by_key( $upload_file_key );
 			$form_id         = MWF_Functions::get_form_id_from_form_key( $this->get_form_key() );
-			$filepath        = MW_WP_Form_Directory::generate_user_filepath( $form_id, $upload_file_key, $upload_filename );
-			if ( ! $upload_filename || ! file_exists( $filepath ) ) {
+
+			try {
+				$filepath = MW_WP_Form_Directory::generate_user_filepath( $form_id, $upload_file_key, $upload_filename );
+			} catch ( \Exception $e ) {
+				error_log( $e->getMessage() );
+				unset( $upload_file_keys[ $key ] );
+				$this->set( $upload_file_key, '' );
+				continue;
+			}
+
+			if ( ! $upload_filename || ! $filepath || ! file_exists( $filepath ) ) {
 				unset( $upload_file_keys[ $key ] );
 				$this->set( $upload_file_key, '' );
 			}

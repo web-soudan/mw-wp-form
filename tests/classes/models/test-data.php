@@ -681,6 +681,24 @@ class MW_WP_Form_Data_Test extends WP_UnitTestCase {
 
 	/**
 	 * @test
+	 * @group regenerate_upload_file_keys
+	 */
+	public function regenerate_upload_file_keys_should_drop_invalid_keys() {
+		$Data = $this->_instantiation_Data( array(
+			MWF_Config::UPLOAD_FILE_KEYS => array( '/var/www/wordpress', '../../../wordpress' ),
+		) );
+
+		$Data->set( '/var/www/wordpress', 'wp-config.php' );
+		$Data->set( '../../../wordpress', 'wp-config.php' );
+		$Data->regenerate_upload_file_keys();
+
+		$this->assertEquals( array(), $Data->get_post_value_by_key( MWF_Config::UPLOAD_FILE_KEYS ) );
+		$this->assertSame( '', $Data->get_post_value_by_key( '/var/www/wordpress' ) );
+		$this->assertSame( '', $Data->get_post_value_by_key( '../../../wordpress' ) );
+	}
+
+	/**
+	 * @test
 	 * @group push_uploaded_file_keys
 	 */
 	public function push_uploaded_file_keys() {
