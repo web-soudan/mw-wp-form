@@ -44,7 +44,14 @@ class MW_WP_Form_Session {
 			$secure     = apply_filters( 'mwform_secure_cookie', is_ssl() );
 			try {
 				set_error_handler( array( 'MW_WP_Form_Session', 'error_handler' ) );
-				setcookie( $this->name, $session_id, 0, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
+				setcookie( $this->name, $session_id, [
+					'expires' => 0,
+					'path' => COOKIEPATH,
+					'domain' => COOKIE_DOMAIN,
+					'secure' => $secure,
+					'httponly' => true,
+					'samesite' => 'Lax'
+				] );
 			} catch ( ErrorException $e ) {
 				// No process...
 			}
