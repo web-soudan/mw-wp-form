@@ -76,4 +76,52 @@ class MW_WP_Form_Directory_Test extends WP_UnitTestCase {
 		$this->expectException( '\RuntimeException' );
 		MW_WP_Form_Directory::generate_user_filepath( $form_id, $name, 'C:\\tmp\\evil.php' );
 	}
+
+	/**
+	 * @test
+	 * @group generate_user_file_dirpath
+	 */
+	public function generate_user_file_dirpath_should_reject_absolute_path_name() {
+		MW_WP_Form_Csrf::save_token();
+		$form_id = $this->_create_form();
+
+		$this->expectException( '\RuntimeException' );
+		MW_WP_Form_Directory::generate_user_file_dirpath( $form_id, '/var/www/wordpress' );
+	}
+
+	/**
+	 * @test
+	 * @group generate_user_file_dirpath
+	 */
+	public function generate_user_file_dirpath_should_reject_nested_path_name() {
+		MW_WP_Form_Csrf::save_token();
+		$form_id = $this->_create_form();
+
+		$this->expectException( '\RuntimeException' );
+		MW_WP_Form_Directory::generate_user_file_dirpath( $form_id, 'nested/file-1' );
+	}
+
+	/**
+	 * @test
+	 * @group generate_user_file_dirpath
+	 */
+	public function generate_user_file_dirpath_should_reject_path_outside_user_dir() {
+		MW_WP_Form_Csrf::save_token();
+		$form_id = $this->_create_form();
+
+		$this->expectException( '\RuntimeException' );
+		MW_WP_Form_Directory::generate_user_file_dirpath( $form_id, '../../../wordpress' );
+	}
+
+	/**
+	 * @test
+	 * @group generate_user_file_dirpath
+	 */
+	public function generate_user_file_dirpath_should_reject_windows_absolute_path_name() {
+		MW_WP_Form_Csrf::save_token();
+		$form_id = $this->_create_form();
+
+		$this->expectException( '\RuntimeException' );
+		MW_WP_Form_Directory::generate_user_file_dirpath( $form_id, 'C:\\xampp\\htdocs\\wordpress' );
+	}
 }

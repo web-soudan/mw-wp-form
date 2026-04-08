@@ -39,6 +39,10 @@ class MW_WP_Form_Directory {
 			throw new \RuntimeException( '[MW WP Form] Failed to create user directory.' );
 		}
 
+		if ( ! preg_match( '/^\d+$/', (string) $form_id ) ) {
+			throw new \RuntimeException( '[MW WP Form] Invalid form ID.' );
+		}
+
 		$user_dir = path_join( static::get(), $saved_token );
 		$user_dir = path_join( $user_dir, (string) $form_id );
 
@@ -54,8 +58,16 @@ class MW_WP_Form_Directory {
 	 * @throws \RuntimeException When directory name is not token value.
 	 */
 	public static function generate_user_file_dirpath( $form_id, $name ) {
+		if ( ! static::_is_valid_path_segment( $name ) ) {
+			throw new \RuntimeException( '[MW WP Form] Invalid file reference requested.' );
+		}
+
 		$user_dir      = static::generate_user_dirpath( $form_id );
 		$user_file_dir = path_join( $user_dir, $name );
+
+		if ( ! static::_is_within_expected_dir_candidate( $form_id, $user_file_dir ) ) {
+			throw new \RuntimeException( '[MW WP Form] Invalid file reference requested.' );
+		}
 
 		return $user_file_dir;
 	}
@@ -140,20 +152,20 @@ class MW_WP_Form_Directory {
 			return false;
 		}
 
+		if ( ! static::_is_valid_path_segment( $filename ) ) {
+			throw new \RuntimeException( '[MW WP Form] Invalid file reference requested.' );
+		}
+
 		$user_file_dir = static::generate_user_file_dirpath( $form_id, $name );
 		if ( ! $user_file_dir || ! is_dir( $user_file_dir ) ) {
 			return false;
 		}
 
-		$normalized_filename = wp_normalize_path( $filename );
-		if (
-			wp_basename( $normalized_filename ) !== $normalized_filename ||
-			strstr( $normalized_filename, "\0" )
-		) {
+		$filepath = path_join( $user_file_dir, $filename );
+		if ( ! static::_is_within_expected_dir_candidate( $form_id, $filepath ) ) {
 			throw new \RuntimeException( '[MW WP Form] Invalid file reference requested.' );
 		}
 
-		$filepath      = path_join( $user_file_dir, $filename );
 		$filepath      = wp_normalize_path( $filepath );
 		$user_file_dir = trailingslashit( wp_normalize_path( $user_file_dir ) );
 
@@ -174,6 +186,92 @@ class MW_WP_Form_Directory {
 		}
 
 		return $filepath;
+	}
+
+	/**
+	 * Return true when path segment is valid.
+	 *
+	 * @param string $value Path segment.
+	 * @return boolean
+	 */
+	protected static function _is_valid_path_segment( $value ) {
+		if ( ! is_string( $value ) || '' === $value ) {
+			return false;
+		}
+
+		$value = wp_normalize_path( $value );
+
+		if ( strstr( $value, "\0" ) ) {
+			return false;
+		}
+
+		if ( '.' === $value || '..' === $value ) {
+			return false;
+		}
+
+		if ( path_is_absolute( $value ) ) {
+			return false;
+		}
+
+		if ( wp_basename( $value ) !== $value ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Return true when candidate path is inside the current user's temp directory.
+	 *
+	 * @param int    $form_id Form ID.
+	 * @param string $path    Target path.
+	 * @return boolean
+	 */
+	protected static function _is_within_expected_dir_candidate( $form_id, $path ) {
+		$path = wp_normalize_path( $path );
+
+		$user_dir = static::_get_expected_user_dir( $form_id, static::get() );
+		if ( false === $user_dir ) {
+			return false;
+		}
+
+		$path           = untrailingslashit( $path );
+		$user_dir       = untrailingslashit( $user_dir );
+		$user_dir_slash = trailingslashit( $user_dir );
+
+		return $path === $user_dir || 0 === strpos( $path, $user_dir_slash );
+	}
+
+	/**
+	 * Return the expected user directory path.
+	 *
+	 * @param int         $form_id  Form ID.
+	 * @param string|bool $base_dir Base directory path.
+	 * @return string|false
+	 */
+	protected static function _get_expected_user_dir( $form_id, $base_dir ) {
+		$saved_token = MW_WP_Form_Csrf::saved_token();
+		$saved_token = $saved_token ? $saved_token : MW_WP_Form_Csrf::token();
+		if ( ! preg_match( '|^[a-z0-9]+$|', $saved_token ) ) {
+			return false;
+		}
+
+		if ( ! preg_match( '/^\d+$/', (string) $form_id ) ) {
+			return false;
+		}
+
+		if ( ! $base_dir ) {
+			return false;
+		}
+
+		$base_dir = wp_normalize_path( $base_dir );
+
+		return wp_normalize_path(
+			path_join(
+				path_join( $base_dir, $saved_token ),
+				(string) $form_id
+			)
+		);
 	}
 
 	/**

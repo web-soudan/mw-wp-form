@@ -332,9 +332,16 @@ class MW_WP_Form_Main_Controller {
 				continue;
 			}
 
-			$form_id  = MWF_Functions::get_form_id_from_form_key( $this->Data->get_form_key() );
-			$filepath = MW_WP_Form_Directory::generate_user_filepath( $form_id, $key, $upload_filename );
-			if ( ! file_exists( $filepath ) ) {
+			$form_id = MWF_Functions::get_form_id_from_form_key( $this->Data->get_form_key() );
+
+			try {
+				$filepath = MW_WP_Form_Directory::generate_user_filepath( $form_id, $key, $upload_filename );
+			} catch ( \Exception $e ) {
+				error_log( $e->getMessage() );
+				continue;
+			}
+
+			if ( ! $filepath || ! file_exists( $filepath ) ) {
 				continue;
 			}
 
