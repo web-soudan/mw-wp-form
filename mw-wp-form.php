@@ -80,6 +80,7 @@ class MW_WP_Form {
 			add_action( 'admin_menu', array( $this, '_admin_menu_for_chart' ) );
 			add_action( 'admin_menu', array( $this, '_admin_menu_for_inquiry_data_list' ) );
 			add_action( 'current_screen', array( $this, '_current_screen' ) );
+			new MW_WP_Form_Deprecation_Notice_Controller();
 		} elseif ( ! is_admin() ) {
 			new MW_WP_Form_Main_Controller();
 		}
