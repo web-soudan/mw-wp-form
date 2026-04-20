@@ -40,14 +40,18 @@ class MW_WP_Form_Csrf {
 		static::$token = ! $saved_token ? static::generate_token() : $saved_token;
 		if ( ! $saved_token && ! headers_sent() ) {
 			$secure = apply_filters( 'mwform_secure_cookie', is_ssl() );
-			setcookie( static::KEY, static::$token, [
-				'expires'  => 0,
-				'path'     => COOKIEPATH,
-				'domain'   => COOKIE_DOMAIN,
-				'secure'   => $secure,
-				'httponly' => true,
-				'samesite' => 'Lax',
-			] );
+			setcookie(
+				static::KEY,
+				static::$token,
+				array(
+					'expires'  => 0,
+					'path'     => COOKIEPATH,
+					'domain'   => COOKIE_DOMAIN,
+					'secure'   => $secure,
+					'httponly' => true,
+					'samesite' => 'Lax',
+				)
+			);
 		}
 	}
 
