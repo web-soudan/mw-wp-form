@@ -88,8 +88,8 @@ abstract class MW_WP_Form_Abstract_Validation_Rule {
 	 */
 	public function getName() {
 		MWF_Functions::deprecated_message(
-			get_class() . '::getName()',
-			get_class() . '::get_name()'
+			get_class( $this ) . '::getName()',
+			get_class( $this ) . '::get_name()'
 		);
 		return $this->get_name();
 	}
