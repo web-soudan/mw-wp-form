@@ -24,6 +24,7 @@ class MW_WP_Form_Admin_Controller extends MW_WP_Form_Controller {
 		add_action( 'media_buttons', array( $this, '_tag_generator' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, '_admin_enqueue_scripts' ) );
 		add_action( 'save_post', array( $this, '_save_post' ) );
+		add_action( 'admin_notices', array( $this, '_deprecated_feature_notice' ) );
 	}
 
 	/**
@@ -105,6 +106,35 @@ class MW_WP_Form_Admin_Controller extends MW_WP_Form_Controller {
 				'side'
 			);
 		}
+	}
+
+	/**
+	 * Display an admin notice when the edited form uses shortcodes that
+	 * will be removed in a future release.
+	 */
+	public function _deprecated_feature_notice() {
+		global $post;
+
+		if ( empty( $post ) || MWF_Config::NAME !== get_post_type( $post ) ) {
+			return;
+		}
+
+		if ( ! preg_match( '/\[(mwform_file|mwform_image)(\s|\])/', (string) $post->post_content ) ) {
+			return;
+		}
+
+		printf(
+			'<div class="notice notice-warning"><p><strong>%1$s</strong><br>%2$s</p></div>',
+			esc_html__( 'MW WP Form: Notice of feature removal', 'mw-wp-form' ),
+			esc_html(
+				sprintf(
+					/* translators: 1: Version number, 2: Planned year of removal. */
+					__( 'The [mwform_file] and [mwform_image] shortcodes will be removed in version %1$s (planned for release within %2$s). This form currently uses one of these shortcodes.', 'mw-wp-form' ),
+					'5.2',
+					'2026'
+				)
+			)
+		);
 	}
 
 	/**
