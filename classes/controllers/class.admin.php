@@ -109,30 +109,81 @@ class MW_WP_Form_Admin_Controller extends MW_WP_Form_Controller {
 	}
 
 	/**
-	 * Display an admin notice when the edited form uses shortcodes that
-	 * will be removed in a future release.
+	 * Display an admin notice listing all forms that use shortcodes
+	 * scheduled for removal in a future release.
 	 */
 	public function _deprecated_feature_notice() {
-		global $post;
-
-		if ( empty( $post ) || MWF_Config::NAME !== get_post_type( $post ) ) {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( empty( $screen ) || MWF_Config::NAME !== $screen->post_type ) {
 			return;
 		}
 
-		if ( ! preg_match( '/\[(mwform_file|mwform_image)(\s|\])/', (string) $post->post_content ) ) {
+		$affected_forms = $this->_get_forms_using_deprecated_shortcodes();
+		if ( empty( $affected_forms ) ) {
 			return;
 		}
 
-		printf(
-			'<div class="notice notice-warning"><p><strong>%1$s</strong><br>%2$s</p></div>',
-			esc_html__( 'MW WP Form: Notice of feature removal', 'mw-wp-form' ),
-			esc_html(
-				sprintf(
+		$list_items = array();
+		foreach ( $affected_forms as $form ) {
+			$edit_link = get_edit_post_link( $form->ID );
+			$title     = '' !== (string) $form->post_title
+				? $form->post_title
+				: __( '(no title)', 'mw-wp-form' );
+
+			if ( $edit_link ) {
+				$list_items[] = sprintf(
+					'<a href="%1$s">%2$s</a>',
+					esc_url( $edit_link ),
+					esc_html( $title )
+				);
+			} else {
+				$list_items[] = esc_html( $title );
+			}
+		}
+
+		?>
+		<div class="notice notice-warning">
+			<p>
+				<strong><?php esc_html_e( 'MW WP Form: Notice of feature removal', 'mw-wp-form' ); ?></strong><br>
+				<?php
+				printf(
 					/* translators: 1: Version number, 2: Planned year of removal. */
-					__( 'The [mwform_file] and [mwform_image] shortcodes will be removed in version %1$s (planned for release within %2$s). This form currently uses one of these shortcodes.', 'mw-wp-form' ),
+					esc_html__( 'The [mwform_file] and [mwform_image] shortcodes will be removed in version %1$s (planned for release within %2$s).', 'mw-wp-form' ),
 					'5.2',
 					'2026'
-				)
+				);
+				?>
+			</p>
+			<p>
+				<?php esc_html_e( 'The following form(s) currently use these shortcodes:', 'mw-wp-form' ); ?>
+				<?php echo implode( ', ', $list_items ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Individual items escaped above. ?>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Return mw-wp-form posts whose content contains shortcodes scheduled
+	 * for removal.
+	 *
+	 * @return array<object{ID:int,post_title:string}>
+	 */
+	protected function _get_forms_using_deprecated_shortcodes() {
+		global $wpdb;
+
+		$like_file  = '%' . $wpdb->esc_like( '[mwform_file' ) . '%';
+		$like_image = '%' . $wpdb->esc_like( '[mwform_image' ) . '%';
+
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT ID, post_title FROM {$wpdb->posts}
+				 WHERE post_type = %s
+				   AND post_status NOT IN ( 'trash', 'auto-draft' )
+				   AND ( post_content LIKE %s OR post_content LIKE %s )
+				 ORDER BY post_title ASC",
+				MWF_Config::NAME,
+				$like_file,
+				$like_image
 			)
 		);
 	}
