@@ -11,11 +11,6 @@
 class MW_WP_Form_Admin_Controller extends MW_WP_Form_Controller {
 
 	/**
-	 * Cache key for the list of forms using shortcodes scheduled for removal.
-	 */
-	const DEPRECATED_SHORTCODES_CACHE_KEY = 'mwform_deprecated_shortcodes_forms';
-
-	/**
 	 * @var array
 	 */
 	protected $styles = array();
@@ -29,11 +24,6 @@ class MW_WP_Form_Admin_Controller extends MW_WP_Form_Controller {
 		add_action( 'media_buttons', array( $this, '_tag_generator' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, '_admin_enqueue_scripts' ) );
 		add_action( 'save_post', array( $this, '_save_post' ) );
-		add_action( 'admin_notices', array( $this, '_deprecated_feature_notice' ) );
-		add_action( 'save_post_' . MWF_Config::NAME, array( $this, '_invalidate_deprecated_shortcodes_cache' ) );
-		add_action( 'deleted_post', array( $this, '_invalidate_deprecated_shortcodes_cache' ) );
-		add_action( 'trashed_post', array( $this, '_invalidate_deprecated_shortcodes_cache' ) );
-		add_action( 'untrashed_post', array( $this, '_invalidate_deprecated_shortcodes_cache' ) );
 	}
 
 	/**
@@ -115,112 +105,6 @@ class MW_WP_Form_Admin_Controller extends MW_WP_Form_Controller {
 				'side'
 			);
 		}
-	}
-
-	/**
-	 * Display an admin notice listing all forms that use shortcodes
-	 * scheduled for removal in a future release. Shown on every admin page
-	 * so that the notice is surfaced even when administrators do not open
-	 * the MW WP Form settings.
-	 */
-	public function _deprecated_feature_notice() {
-		if ( ! current_user_can( MWF_Config::CAPABILITY ) ) {
-			return;
-		}
-
-		$affected_forms = $this->_get_forms_using_deprecated_shortcodes();
-		if ( empty( $affected_forms ) ) {
-			return;
-		}
-
-		$list_items = array();
-		foreach ( $affected_forms as $form ) {
-			$edit_link = get_edit_post_link( $form->ID );
-			$title     = '' !== (string) $form->post_title
-				? $form->post_title
-				: __( '(no title)', 'mw-wp-form' );
-
-			if ( $edit_link ) {
-				$list_items[] = sprintf(
-					'<a href="%1$s">%2$s</a>',
-					esc_url( $edit_link ),
-					esc_html( $title )
-				);
-			} else {
-				$list_items[] = esc_html( $title );
-			}
-		}
-
-		?>
-		<div class="notice notice-warning">
-			<p>
-				<strong><?php esc_html_e( 'MW WP Form: Notice of feature removal', 'mw-wp-form' ); ?></strong><br>
-				<?php
-				printf(
-					/* translators: 1: Version number, 2: Planned year of removal. */
-					esc_html__( 'The [mwform_file] and [mwform_image] shortcodes will be removed in version %1$s (planned for release within %2$s).', 'mw-wp-form' ),
-					'5.2',
-					'2026'
-				);
-				?>
-			</p>
-			<p>
-				<?php esc_html_e( 'The following form(s) currently use these shortcodes:', 'mw-wp-form' ); ?>
-				<?php echo implode( ', ', $list_items ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Individual items escaped above. ?>
-			</p>
-		</div>
-		<?php
-	}
-
-	/**
-	 * Return mw-wp-form posts whose content contains shortcodes scheduled
-	 * for removal.
-	 *
-	 * @return array<object{ID:int,post_title:string}>
-	 */
-	protected function _get_forms_using_deprecated_shortcodes() {
-		$cached = get_transient( self::DEPRECATED_SHORTCODES_CACHE_KEY );
-		if ( false !== $cached ) {
-			return $cached;
-		}
-
-		global $wpdb;
-
-		$like_file  = '%' . $wpdb->esc_like( '[mwform_file' ) . '%';
-		$like_image = '%' . $wpdb->esc_like( '[mwform_image' ) . '%';
-
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT ID, post_title FROM {$wpdb->posts}
-				 WHERE post_type = %s
-				   AND post_status NOT IN ( 'trash', 'auto-draft' )
-				   AND ( post_content LIKE %s OR post_content LIKE %s )
-				 ORDER BY post_title ASC",
-				MWF_Config::NAME,
-				$like_file,
-				$like_image
-			)
-		);
-
-		if ( ! is_array( $results ) ) {
-			$results = array();
-		}
-
-		set_transient( self::DEPRECATED_SHORTCODES_CACHE_KEY, $results, HOUR_IN_SECONDS );
-		return $results;
-	}
-
-	/**
-	 * Invalidate the cached list of forms using deprecated shortcodes.
-	 * Fires when a form is saved, deleted, trashed, or untrashed.
-	 *
-	 * @param int $post_id Post ID.
-	 */
-	public function _invalidate_deprecated_shortcodes_cache( $post_id = 0 ) {
-		if ( $post_id && MWF_Config::NAME !== get_post_type( $post_id ) ) {
-			return;
-		}
-		delete_transient( self::DEPRECATED_SHORTCODES_CACHE_KEY );
 	}
 
 	/**
