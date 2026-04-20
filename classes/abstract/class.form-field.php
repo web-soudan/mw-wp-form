@@ -129,7 +129,7 @@ abstract class MW_WP_Form_Abstract_Form_Field {
 		$args = $this->set_names();
 
 		if ( empty( $args['shortcode_name'] ) || empty( $args['display_name'] ) ) {
-			exit( get_class() . '::set_names() returns not right values. Returned values is ' . serialize( $args ) . ' now.' );
+			exit( get_class( $this ) . '::set_names() returns not right values. Returned values is ' . serialize( $args ) . ' now.' );
 		}
 
 		$this->shortcode_name = $args['shortcode_name'];
