@@ -5,7 +5,7 @@ Tags: plugin, form, confirm, preview, shortcode, mail, chart, graph, html, conta
 Requires at least: 6.0
 Requires PHP: 8.0
 Tested up to: 6.4
-Stable tag: 5.1.2
+Stable tag: 5.1.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,13 @@ Do you have questions or issues with MW WP Form? Use these support channels appr
 5. Supports chart display of saved inquiry data.
 
 == Changelog ==
+
+= 5.1.3 =
+* Security Tighten access control on post property reference handling
+* Added Cookie SameSite=Lax attribute to CSRF / session cookies
+* Added Admin notice for [mwform_file] / [mwform_image] shortcodes, which are scheduled for removal in 5.2
+* Fixed PHP 8.3 Deprecated warning on get_class() without arguments
+* Fixed Undefined variable warning in maxfilesize (image size) validation rule
 
 = 5.1.2 =
 * Security Fix insufficient file path validation in upload file handling
