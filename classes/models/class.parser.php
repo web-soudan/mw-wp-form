@@ -134,6 +134,10 @@ class MW_WP_Form_Parser {
 			return;
 		}
 
+		if ( 'publish' !== $post->post_status || post_password_required( $post ) ) {
+			return;
+		}
+
 		return $this->_get_post_property( $post, $matches[1] );
 	}
 
