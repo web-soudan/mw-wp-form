@@ -56,6 +56,7 @@ class MW_WP_Form_Validation_Rule_MaxImageSize extends MW_WP_Form_Abstract_Valida
 			$filepath = MW_WP_Form_Directory::generate_user_filepath( $form_id, $name, $value );
 		}
 
+		$imagesize = false;
 		if ( file_exists( $filepath ) && exif_imagetype( $filepath ) ) {
 			$imagesize = getimagesize( $filepath );
 		} else {
@@ -70,7 +71,7 @@ class MW_WP_Form_Validation_Rule_MaxImageSize extends MW_WP_Form_Abstract_Valida
 			'message' => __( 'This image size is too big.', 'mw-wp-form' ),
 		);
 		$options  = array_merge( $defaults, $options );
-		if ( $is_error || $imagesize[0] > $options['width'] || $imagesize[1] > $options['height'] ) {
+		if ( $is_error || ( is_array( $imagesize ) && ( $imagesize[0] > $options['width'] || $imagesize[1] > $options['height'] ) ) ) {
 			return $options['message'];
 		}
 	}
