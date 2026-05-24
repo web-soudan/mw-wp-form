@@ -74,6 +74,6 @@
 	</tr>
 	<tr>
 		<th><?php esc_html_e( 'Memo', 'mw-wp-form' ); ?></th>
-		<td><textarea name="<?php echo esc_attr( MWF_Config::INQUIRY_DATA_NAME ); ?>[memo]" cols="50" rows="5"><?php echo $contact_data_setting->get( 'memo' ); ?></textarea></td>
+		<td><textarea name="<?php echo esc_attr( MWF_Config::INQUIRY_DATA_NAME ); ?>[memo]" cols="50" rows="5"><?php echo esc_textarea( $contact_data_setting->get( 'memo' ) ); ?></textarea></td>
 	</tr>
 </table>
