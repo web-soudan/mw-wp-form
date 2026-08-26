@@ -62,6 +62,97 @@ class MW_WP_Form_Parser_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * 正常系: 完了画面向けの置換。通常の値はそのまま差し込まれ、
+	 * 未入力のタグは空文字になる（replace_for_mail_content と同じ挙動）。
+	 *
+	 * @test
+	 * @group replace_for_complete_page
+	 */
+	public function replace_for_complete_page__normal() {
+		$form_id  = $this->_create_form();
+		$form_key = MWF_Functions::get_form_key_from_form_id( $form_id );
+		$Setting  = new MW_WP_Form_Setting( $form_id );
+		$Data     = MW_WP_Form_Data::connect( $form_key );
+		$Parser   = new MW_WP_Form_Parser( $Setting );
+
+		$Data->set( 'name-1', 'value-1' );
+		$content = 'abcde {name-1} fghijk {name-2} lmnopq';
+		$this->assertEquals( 'abcde value-1 fghijk  lmnopq', $Parser->replace_for_complete_page( $content ) );
+
+		// ブラケットを含まない custom mail tag の値もそのまま反映される。
+		add_filter( 'mwform_custom_mail_tag', function( $value, $name, $saved_mail_id ) {
+			if ( 'name-1' === $name ) {
+				return 'custom-value-1';
+			}
+			return $value;
+		}, 10, 3 );
+		$this->assertEquals( 'abcde custom-value-1 fghijk  lmnopq', $Parser->replace_for_complete_page( $content ) );
+	}
+
+	/**
+	 * 異常系: 送信値にショートコード構文が含まれていても、
+	 * 置換後にブラケットが無効化され do_shortcode で実行されないこと。
+	 * ラッパー [mwform_complete_message] の閉じタグによるブレイクアウトや、
+	 * フォームが宣言していないキー経由の値も同様に無効化される。
+	 *
+	 * @test
+	 * @group replace_for_complete_page
+	 */
+	public function replace_for_complete_page__neutralizes_shortcode_syntax() {
+		$form_id  = $this->_create_form();
+		$form_key = MWF_Functions::get_form_key_from_form_id( $form_id );
+		$Setting  = new MW_WP_Form_Setting( $form_id );
+		$Data     = MW_WP_Form_Data::connect( $form_key );
+		$Parser   = new MW_WP_Form_Parser( $Setting );
+
+		// 単純なショートコード構文を含む値。
+		$Data->set( 'name-1', '[caption]x[/caption]' );
+		$this->assertEquals(
+			'Reference: &#91;caption&#93;x&#91;/caption&#93;',
+			$Parser->replace_for_complete_page( 'Reference: {name-1}' )
+		);
+
+		// ラッパーの閉じタグによるブレイクアウトを狙った値。
+		$Data->set( 'name-2', '[/mwform_complete_message][caption caption="XSS"]x[/caption]' );
+		$replaced = $Parser->replace_for_complete_page( '{name-2}' );
+		$this->assertStringNotContainsString( '[', $replaced );
+		$this->assertStringNotContainsString( ']', $replaced );
+		$this->assertEquals(
+			'&#91;/mwform_complete_message&#93;&#91;caption caption="XSS"&#93;x&#91;/caption&#93;',
+			$replaced
+		);
+
+		// フォームが宣言していないキー（$_POST 直渡し）経由の値も無効化される。
+		$Data->set( 'undeclared', '[caption]y[/caption]' );
+		$replaced = $Parser->replace_for_complete_page( '{undeclared}' );
+		$this->assertStringNotContainsString( '[', $replaced );
+		$this->assertStringNotContainsString( ']', $replaced );
+
+		// custom mail tag 経由でブラケットが返された場合も無効化される。
+		add_filter( 'mwform_custom_mail_tag', function( $value, $name, $saved_mail_id ) {
+			if ( 'evil' === $name ) {
+				return '[caption]z[/caption]';
+			}
+			return $value;
+		}, 10, 3 );
+		$replaced = $Parser->replace_for_complete_page( '{evil}' );
+		$this->assertStringNotContainsString( '[', $replaced );
+		$this->assertStringNotContainsString( ']', $replaced );
+
+		// 実際に do_shortcode を通しても、無効化済みのためショートコードが展開されないこと。
+		$Data->set( 'name-3', '[/mwform_complete_message][caption caption="EXECUTED"]x[/caption]' );
+		$wrapped = sprintf(
+			'[mwform_complete_message]%s[/mwform_complete_message]',
+			$Parser->replace_for_complete_page( 'Reference: {name-3}' )
+		);
+		add_shortcode( 'mwform_complete_message', function( $atts, $content = '' ) {
+			return $content;
+		} );
+		$this->assertStringNotContainsString( 'wp-caption', do_shortcode( $wrapped ) );
+		remove_shortcode( 'mwform_complete_message' );
+	}
+
+	/**
 	 * @test
 	 * @group replace_for_page
 	 */
