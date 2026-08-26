@@ -180,7 +180,7 @@ class MW_WP_Form_Contact_Data_List_Controller extends MW_WP_Form_Controller {
 					continue;
 				}
 
-				$_columns[ $key ] = $key;
+				$_columns[ $key ] = esc_html( $key );
 			}
 		}
 
@@ -206,9 +206,9 @@ class MW_WP_Form_Contact_Data_List_Controller extends MW_WP_Form_Controller {
 		} elseif ( 'response_status' === $column ) {
 			$response_statuses = $contact_data_setting->get_response_statuses();
 			$response_status   = $contact_data_setting->get( 'response_status' );
-			$value             = $response_statuses[ $response_status ];
+			$value             = esc_html( $response_statuses[ $response_status ] );
 		} elseif ( 'admin_mail_to' === $column ) {
-			$value = $contact_data_setting->get( 'admin_mail_to' );
+			$value = esc_html( $contact_data_setting->get( 'admin_mail_to' ) );
 		} elseif ( is_array( $post_custom_keys ) && in_array( $column, $post_custom_keys, true ) ) {
 			$post_meta = get_post_meta( $post_id, $column, true );
 			if ( $contact_data_setting->is_upload_file_key( $column ) ) {

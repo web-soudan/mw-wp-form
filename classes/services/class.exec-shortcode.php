@@ -214,7 +214,7 @@ class MW_WP_Form_Exec_Shortcode {
 
 		$content = str_replace( '{' . MWF_Config::TRACKINGNUMBER . '}', '{' . MWF_Config::TRACKINGNUMBER . '_for_complete_page}', $content );
 		$content = $this->_wpautop( $content );
-		$content = $Parser->replace_for_mail_content( $content );
+		$content = $Parser->replace_for_complete_page( $content );
 		$content = apply_filters( 'mwform_complete_content_' . $this->form_key, $content, $this->Data );
 
 		$content = sprintf(
