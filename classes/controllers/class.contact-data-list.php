@@ -16,6 +16,14 @@ class MW_WP_Form_Contact_Data_List_Controller extends MW_WP_Form_Controller {
 	protected $post_type;
 
 	/**
+	 * Map of the safe column identifier that is registered with WordPress
+	 * to the original (possibly unsafe) meta key it represents.
+	 *
+	 * @var array
+	 */
+	protected $column_keys = array();
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -186,8 +194,63 @@ class MW_WP_Form_Contact_Data_List_Controller extends MW_WP_Form_Controller {
 
 		ksort( $_columns );
 		$_columns = apply_filters( 'mwform_inquiry_data_columns-' . $this->post_type, $_columns );
-		$columns  = array_merge( $columns, $_columns );
+
+		// Meta keys can be attacker-influenced (they derive from mail-content tags),
+		// and WordPress prints the column identifier verbatim into the heading id
+		// attribute, the heading/cell class attributes and the Screen Options panel.
+		// Register a safe identifier for each column and keep a map back to the
+		// original meta key so that the value lookup in _add_form_columns() still works.
+		$this->column_keys = array();
+		$safe_columns      = array();
+		foreach ( $_columns as $key => $label ) {
+			$id                       = $this->_get_safe_column_id( $key, $safe_columns );
+			$this->column_keys[ $id ] = $key;
+			$safe_columns[ $id ]      = $label;
+		}
+
+		$columns = array_merge( $columns, $safe_columns );
 		return $columns;
+	}
+
+	/**
+	 * Return a column identifier that is safe to print inside HTML id/class
+	 * attributes. Keys that are already safe slugs (only [a-z0-9_-]) are kept as
+	 * is so that existing Screen Options preferences and third-party columns are
+	 * preserved; unsafe keys are prefixed and stripped, with a numeric suffix to
+	 * keep distinct keys from colliding.
+	 *
+	 * @param string $key  The original meta key.
+	 * @param array  $used Already assigned identifiers (identifier => label).
+	 * @return string
+	 */
+	protected function _get_safe_column_id( $key, array $used ) {
+		$key = (string) $key;
+
+		// Identifiers this controller registers separately; a dynamic column
+		// must never reuse one of them.
+		$reserved = array( 'cb', 'title', 'date', 'post_date', 'admin_mail_to', 'response_status' );
+
+		// Keep keys that only contain characters safe inside HTML id/class
+		// attributes (WordPress prints them verbatim) so that existing Screen
+		// Options preferences, third-party columns and any CSS keyed on the id
+		// are preserved. Uppercase is safe in attributes, so it is kept too.
+		if ( preg_match( '/\A[A-Za-z0-9_-]+\z/', $key )
+			&& ! in_array( $key, $reserved, true )
+			&& ! isset( $used[ $key ] ) ) {
+			return $key;
+		}
+
+		$base = 'mwf-' . sanitize_key( $key );
+		if ( 'mwf-' === $base ) {
+			$base = 'mwf-col';
+		}
+		$id = $base;
+		$n  = 2;
+		while ( isset( $used[ $id ] ) || in_array( $id, $reserved, true ) ) {
+			$id = $base . '-' . $n;
+			$n++;
+		}
+		return $id;
 	}
 
 	/**
@@ -197,6 +260,12 @@ class MW_WP_Form_Contact_Data_List_Controller extends MW_WP_Form_Controller {
 	 * @param int    $post_id Post ID.
 	 */
 	public function _add_form_columns( $column, $post_id ) {
+		// Translate the safe identifier registered in _add_form_columns_name()
+		// back to the original meta key for value lookup.
+		if ( isset( $this->column_keys[ $column ] ) ) {
+			$column = $this->column_keys[ $column ];
+		}
+
 		$post                 = get_post( $post_id );
 		$post_custom_keys     = get_post_custom_keys( $post_id );
 		$contact_data_setting = new MW_WP_Form_Contact_Data_Setting( $post_id );
@@ -206,7 +275,9 @@ class MW_WP_Form_Contact_Data_List_Controller extends MW_WP_Form_Controller {
 		} elseif ( 'response_status' === $column ) {
 			$response_statuses = $contact_data_setting->get_response_statuses();
 			$response_status   = $contact_data_setting->get( 'response_status' );
-			$value             = esc_html( $response_statuses[ $response_status ] );
+			$value             = isset( $response_statuses[ $response_status ] )
+				? esc_html( $response_statuses[ $response_status ] )
+				: '';
 		} elseif ( 'admin_mail_to' === $column ) {
 			$value = esc_html( $contact_data_setting->get( 'admin_mail_to' ) );
 		} elseif ( is_array( $post_custom_keys ) && in_array( $column, $post_custom_keys, true ) ) {
