@@ -162,7 +162,7 @@ class MW_WP_Form_Parser {
 			return;
 		}
 
-		if ( 'publish' !== $post->post_status || post_password_required( $post ) ) {
+		if ( ! is_post_publicly_viewable( $post ) || post_password_required( $post ) ) {
 			return;
 		}
 

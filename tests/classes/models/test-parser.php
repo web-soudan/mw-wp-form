@@ -198,6 +198,87 @@ class MW_WP_Form_Parser_Test extends WP_UnitTestCase {
 
 	/**
 	 * @test
+	 * @group replace_for_page
+	 */
+	public function replace_for_page__querystring_does_not_expose_non_public_post() {
+		$form_id  = $this->_create_form();
+		$form_key = MWF_Functions::get_form_key_from_form_id( $form_id );
+		$Setting  = new MW_WP_Form_Setting( $form_id );
+		$Data     = MW_WP_Form_Data::connect( $form_key );
+		$Parser   = new MW_WP_Form_Parser( $Setting );
+		$Setting->set( 'querystring', 1 );
+
+		$content = 'name: {name} / email: {email} / message: {message} / title: {post_title}';
+
+		// お問い合わせデータ（公開されない投稿タイプ・post_status は publish）
+		$contact_data_post_type = MWF_Functions::get_contact_data_post_type_from_form_id( $form_id );
+		register_post_type(
+			$contact_data_post_type,
+			array(
+				'public'  => false,
+				'show_ui' => true,
+			)
+		);
+		$contact_data_id = $this->factory->post->create(
+			array(
+				'post_type'   => $contact_data_post_type,
+				'post_status' => 'publish',
+				'post_title'  => 'Inquiry',
+			)
+		);
+		update_post_meta( $contact_data_id, 'name', 'Bob Victim' );
+		update_post_meta( $contact_data_id, 'email', 'bob@victim.test' );
+		update_post_meta( $contact_data_id, 'message', 'This is Bob private message.' );
+
+		$this->go_to( home_url( '?post_id=' . $contact_data_id ) );
+		$replaced = $Parser->replace_for_page( $content );
+		$this->assertEquals( 'name:  / email:  / message:  / title: ', $replaced );
+		$this->assertStringNotContainsString( 'bob@victim.test', $replaced );
+
+		// 公開されていない投稿（下書き）
+		$draft_id = $this->factory->post->create(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'draft',
+				'post_title'  => 'Draft',
+			)
+		);
+		update_post_meta( $draft_id, 'email', 'draft@example.test' );
+		$this->go_to( home_url( '?post_id=' . $draft_id ) );
+		$this->assertEquals( 'name:  / email:  / message:  / title: ', $Parser->replace_for_page( $content ) );
+
+		// 非公開投稿（private）
+		$private_id = $this->factory->post->create(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'private',
+				'post_title'  => 'Private',
+			)
+		);
+		update_post_meta( $private_id, 'email', 'private@example.test' );
+		$this->go_to( home_url( '?post_id=' . $private_id ) );
+		$this->assertEquals( 'name:  / email:  / message:  / title: ', $Parser->replace_for_page( $content ) );
+
+		// 公開投稿は引き続き参照できること
+		$public_id = $this->factory->post->create(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'post_title'  => 'Public',
+			)
+		);
+		update_post_meta( $public_id, 'email', 'public-owner@site.test' );
+		$this->go_to( home_url( '?post_id=' . $public_id ) );
+		$this->assertEquals(
+			'name:  / email: public-owner@site.test / message:  / title: Public',
+			$Parser->replace_for_page( $content )
+		);
+
+		_unregister_post_type( $contact_data_post_type );
+	}
+
+	/**
+	 * @test
 	 * @group search
 	 */
 	public function search() {
