@@ -81,6 +81,9 @@ Do you have questions or issues with MW WP Form? Use these support channels appr
 
 == Changelog ==
 
+= 5.1.7 =
+* Security Tighten access control on post reference handling via query string
+
 = 5.1.6 =
 * Security Tighten output escaping on inquiry data list screen (column identifier). Thanks to Sai Praneeth Koti for reporting.
 
