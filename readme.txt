@@ -5,7 +5,7 @@ Tags: plugin, form, confirm, preview, shortcode, mail, chart, graph, html, conta
 Requires at least: 6.0
 Requires PHP: 8.0
 Tested up to: 6.4
-Stable tag: 5.1.6
+Stable tag: 5.1.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,9 @@ Do you have questions or issues with MW WP Form? Use these support channels appr
 5. Supports chart display of saved inquiry data.
 
 == Changelog ==
+
+= 5.1.8 =
+* Security Tighten access control on post reference handling via query string (re-release of 5.1.7, which was not delivered due to a missing Stable tag update)
 
 = 5.1.7 =
 * Security Tighten access control on post reference handling via query string
