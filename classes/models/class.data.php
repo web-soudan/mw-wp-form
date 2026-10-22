@@ -213,9 +213,21 @@ class MW_WP_Form_Data {
 	 * @return string back|confirm|complete|input
 	 */
 	public function get_post_condition() {
-		$backButton    = $this->get_post_value_by_key( MWF_Config::BACK_BUTTON );
-		$confirmButton = $this->get_post_value_by_key( MWF_Config::CONFIRM_BUTTON );
-		$request_token = $this->get_post_value_by_key( MWF_Config::TOKEN_NAME );
+		// The redirected GET has no submitted button. Use its saved view, so a
+		// token left by an invalid POST does not make the input page "complete".
+		// A valid confirmation or completion GET must retain that saved view.
+		if ( empty( $this->POST ) ) {
+			$view_flg = $this->get_view_flg();
+			if ( in_array( $view_flg, array( 'confirm', 'complete' ), true ) ) {
+				return $view_flg;
+			}
+			return 'input';
+		}
+
+		// On POST, classify only the button and token in this request.
+		$backButton    = isset( $this->POST[ MWF_Config::BACK_BUTTON ] ) ? $this->POST[ MWF_Config::BACK_BUTTON ] : null;
+		$confirmButton = isset( $this->POST[ MWF_Config::CONFIRM_BUTTON ] ) ? $this->POST[ MWF_Config::CONFIRM_BUTTON ] : null;
+		$request_token = isset( $this->POST[ MWF_Config::TOKEN_NAME ] ) ? $this->POST[ MWF_Config::TOKEN_NAME ] : null;
 
 		if ( $backButton ) {
 			return 'back';
