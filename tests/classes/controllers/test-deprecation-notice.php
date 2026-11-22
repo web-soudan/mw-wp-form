@@ -8,20 +8,27 @@ class MW_WP_Form_Deprecation_Notice_Controller_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Create a mw-wp-form post.
+	 * Create a mw-wp-form post saved before 5.2.
+	 * The content is written directly so that [mwform_file] and [mwform_image] are kept.
 	 *
 	 * @param string $content Post content.
 	 * @param string $status  Post status.
 	 * @return int Post ID.
 	 */
 	protected function _create_form( $content = '', $status = 'publish' ) {
-		return $this->factory->post->create(
+		global $wpdb;
+
+		$post_id = $this->factory->post->create(
 			array(
-				'post_type'    => MWF_Config::NAME,
-				'post_status'  => $status,
-				'post_content' => $content,
+				'post_type'   => MWF_Config::NAME,
+				'post_status' => $status,
 			)
 		);
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $content ), array( 'ID' => $post_id ) );
+		clean_post_cache( $post_id );
+		delete_transient( MW_WP_Form_Deprecation_Notice_Controller::CACHE_KEY );
+
+		return $post_id;
 	}
 
 	/**

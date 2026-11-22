@@ -9,7 +9,7 @@
  * MW_WP_Form_Deprecation_Notice_Controller
  *
  * Displays a deprecation notice across every admin page when forms that use
- * shortcodes scheduled for removal exist. Split out from the form edit
+ * shortcodes that can no longer be added (since 5.2) exist. Split out from the form edit
  * controller so that the notice appears even when administrators are not
  * currently editing a form.
  */
@@ -69,10 +69,9 @@ class MW_WP_Form_Deprecation_Notice_Controller {
 				<strong><?php esc_html_e( 'MW WP Form: Notice of feature removal', 'mw-wp-form' ); ?></strong><br>
 				<?php
 				printf(
-					/* translators: 1: Version number, 2: Planned year of removal. */
-					esc_html__( 'The [mwform_file] and [mwform_image] shortcodes will be removed in version %1$s (planned for release within %2$s).', 'mw-wp-form' ),
-					'5.2',
-					'2026'
+					/* translators: %s: Version number. */
+					esc_html__( 'Since version %s, the [mwform_file] and [mwform_image] shortcodes can no longer be added or changed. Existing ones continue to work.', 'mw-wp-form' ),
+					'5.2'
 				);
 				?>
 			</p>

@@ -70,6 +70,8 @@ class MW_WP_Form {
 		add_action( 'init', array( $this, '_register_post_type' ) );
 		add_action( 'template_redirect', array( $this, '_do_empty_temp_dir' ) );
 		add_action( 'before_delete_post', array( 'MWF_Functions', 'delete_contact_data_attachments' ) );
+
+		new MW_WP_Form_Upload_Field_Restriction_Controller();
 	}
 
 	/**
