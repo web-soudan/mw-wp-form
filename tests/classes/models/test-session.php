@@ -101,6 +101,68 @@ class MW_WP_Form_Session_Test extends WP_UnitTestCase {
 
 	/**
 	 * @test
+	 * @group session_id
+	 */
+	public function session_id_format() {
+		$cookie_name = MWF_Config::NAME . '_session_session';
+
+		$session_ids = array(
+			'abc',
+			str_repeat( 'A', 40 ),
+			sha1( 'test' ) . '0',
+			substr( sha1( 'test' ), 0, 39 ),
+			sha1( 'test' ) . "\n",
+		);
+
+		foreach ( $session_ids as $session_id ) {
+			$_COOKIE[ $cookie_name ] = $session_id;
+			set_transient( $session_id, array( 'key' => 'value' ) );
+
+			$Session = new MW_WP_Form_Session( 'session' );
+			$this->assertSame( array(), $Session->gets() );
+
+			$Session->set( 'name-1', 'value-1' );
+			$this->assertEquals(
+				array( 'key' => 'value' ),
+				get_transient( $session_id )
+			);
+
+			$Session->clear_values();
+			$this->assertEquals(
+				array( 'key' => 'value' ),
+				get_transient( $session_id )
+			);
+
+			delete_transient( $session_id );
+			unset( $_COOKIE[ $cookie_name ] );
+		}
+	}
+
+	/**
+	 * @test
+	 * @group session_id
+	 */
+	public function session_id_prefix() {
+		$session_id  = sha1( 'test' );
+		$cookie_name = MWF_Config::NAME . '_session_session';
+
+		$_COOKIE[ $cookie_name ] = $session_id;
+
+		$Session = new MW_WP_Form_Session( 'session' );
+		$Session->set( 'name-1', 'value-1' );
+
+		$this->assertFalse( get_transient( $session_id ) );
+		$this->assertEquals(
+			array( 'name-1' => 'value-1' ),
+			get_transient( MWF_Config::NAME . '_session_' . $session_id )
+		);
+
+		$Session->clear_values();
+		unset( $_COOKIE[ $cookie_name ] );
+	}
+
+	/**
+	 * @test
 	 * @group clear_values
 	 */
 	public function clear_values() {

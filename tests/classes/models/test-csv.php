@@ -81,4 +81,45 @@ class MW_WP_Form_CSV_Test extends WP_UnitTestCase {
 		$_POST['download-all'] = 'true';
 		$this->assertEquals( 1, $CSV->_get_paged() );
 	}
+
+	/**
+	 * @test
+	 * @group _generate_csv
+	 */
+	public function _generate_csv_leading_character() {
+		$form_id   = $this->factory->post->create( array( 'post_type' => MWF_Config::NAME ) );
+		$post_type = MWF_Functions::get_contact_data_post_type_from_form_id( $form_id );
+		$post_id   = $this->factory->post->create( array( 'post_type' => $post_type ) );
+
+		$values = array(
+			'a' => '=1+1',
+			'b' => '+1',
+			'c' => '-1',
+			'd' => '@a',
+			'e' => "\tx",
+			'f' => "\rx",
+			'g' => 'a=b',
+			'h' => 'abc',
+			'i' => '"=1"',
+		);
+		foreach ( $values as $key => $value ) {
+			update_post_meta( $post_id, $key, $value );
+		}
+
+		$CSV       = new MW_WP_Form_CSV( $post_type );
+		$generate  = new ReflectionMethod( $CSV, '_generate_csv' );
+		$generate->setAccessible( true );
+		$csv = $generate->invoke( $CSV );
+
+		$this->assertStringContainsString( '"\'=1+1"', $csv );
+		$this->assertStringContainsString( '"\'+1"', $csv );
+		$this->assertStringContainsString( '"\'-1"', $csv );
+		$this->assertStringContainsString( '"\'@a"', $csv );
+		$this->assertStringContainsString( "\"'\tx\"", $csv );
+		$this->assertStringContainsString( "\"'\rx\"", $csv );
+		$this->assertStringContainsString( '"a=b"', $csv );
+		$this->assertStringContainsString( '"abc"', $csv );
+		$this->assertStringContainsString( '"""=1"""', $csv );
+		$this->assertStringNotContainsString( '"=1+1"', $csv );
+	}
 }
