@@ -18,6 +18,8 @@ class MW_WP_Form_Session {
 	protected $name;
 
 	/**
+	 * Transient name.
+	 *
 	 * @var string
 	 */
 	protected $session_id;
@@ -37,9 +39,12 @@ class MW_WP_Form_Session {
 	public function __construct( $name ) {
 		$this->name = MWF_Config::NAME . '_session_' . $name;
 
-		if ( isset( $_COOKIE[ $this->name ] ) ) {
+		$session_id = false;
+		if ( isset( $_COOKIE[ $this->name ] ) && preg_match( '/\A[0-9a-f]{40}\z/', $_COOKIE[ $this->name ] ) ) {
 			$session_id = $_COOKIE[ $this->name ];
-		} else {
+		}
+
+		if ( ! $session_id ) {
 			$session_id = sha1( wp_create_nonce( $this->name ) . ip2long( $this->get_remote_addr() ) . uniqid() );
 			$secure     = apply_filters( 'mwform_secure_cookie', is_ssl() );
 			try {
@@ -61,7 +66,7 @@ class MW_WP_Form_Session {
 			}
 		}
 
-		$this->session_id = $session_id;
+		$this->session_id = MWF_Config::NAME . '_session_' . $session_id;
 	}
 
 	/**
