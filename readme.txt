@@ -81,6 +81,12 @@ Do you have questions or issues with MW WP Form? Use these support channels appr
 
 == Changelog ==
 
+= 5.2.0 =
+* Changed Attached files of inquiry data are now deleted when the inquiry data is permanently deleted (including emptying the trash and uninstalling). Moving inquiry data to the trash does not delete them.
+* Changed The [mwform_file] and [mwform_image] form tags can no longer be added to or changed in forms. Those already saved in a form continue to work, and others are removed when the form is saved.
+* Changed Removed [mwform_file] and [mwform_image] from the form tag generator
+* Changed Updated the admin notice for forms using [mwform_file] / [mwform_image]
+
 = 5.1.9 =
 * Security Hardened session handling
 * Security Hardened CSV export
