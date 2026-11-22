@@ -97,6 +97,80 @@ class MWF_Functions_Test extends WP_UnitTestCase {
 
 	public function save_attachments_in_media() {}
 
+	/**
+	 * Create an attachment with a file.
+	 *
+	 * @param int $parent_id Parent post ID.
+	 * @return array Attachment ID and file path.
+	 */
+	protected function _create_attachment( $parent_id ) {
+		$upload = wp_upload_bits( 'mwform-' . wp_generate_password( 8, false ) . '.txt', null, 'test' );
+		$this->assertEmpty( $upload['error'] );
+
+		$attachment_id = wp_insert_attachment(
+			array(
+				'post_mime_type' => 'text/plain',
+				'post_title'     => 'file',
+				'post_status'    => 'inherit',
+			),
+			$upload['file'],
+			$parent_id
+		);
+
+		return array( $attachment_id, $upload['file'] );
+	}
+
+	/**
+	 * @test
+	 * @group delete_contact_data_attachments
+	 */
+	public function attachments_are_deleted_with_contact_data() {
+		$form_id   = $this->_create_form();
+		$post_type = MWF_Functions::get_contact_data_post_type_from_form_id( $form_id );
+		$post_id   = $this->factory->post->create( array( 'post_type' => $post_type ) );
+		$other_id  = $this->factory->post->create( array( 'post_type' => $post_type ) );
+
+		list( $attachment_id_1, $file_1 ) = $this->_create_attachment( $post_id );
+		list( $attachment_id_2, $file_2 ) = $this->_create_attachment( $post_id );
+		list( $other_attachment_id, $other_file ) = $this->_create_attachment( $other_id );
+		list( $media_id, $media_file ) = $this->_create_attachment( 0 );
+
+		wp_trash_post( $post_id );
+		$this->assertNotNull( get_post( $attachment_id_1 ) );
+		$this->assertFileExists( $file_1 );
+
+		wp_delete_post( $post_id, true );
+
+		$this->assertNull( get_post( $attachment_id_1 ) );
+		$this->assertNull( get_post( $attachment_id_2 ) );
+		$this->assertFileDoesNotExist( $file_1 );
+		$this->assertFileDoesNotExist( $file_2 );
+
+		$this->assertNotNull( get_post( $other_attachment_id ) );
+		$this->assertFileExists( $other_file );
+		$this->assertNotNull( get_post( $media_id ) );
+		$this->assertFileExists( $media_file );
+
+		wp_delete_attachment( $other_attachment_id, true );
+		wp_delete_attachment( $media_id, true );
+	}
+
+	/**
+	 * @test
+	 * @group delete_contact_data_attachments
+	 */
+	public function attachments_are_not_deleted_with_other_posts() {
+		$post_id = $this->factory->post->create();
+		list( $attachment_id, $file ) = $this->_create_attachment( $post_id );
+
+		wp_delete_post( $post_id, true );
+
+		$this->assertNotNull( get_post( $attachment_id ) );
+		$this->assertFileExists( $file );
+
+		wp_delete_attachment( $attachment_id, true );
+	}
+
 	public function check_file_type() {}
 
 	/**

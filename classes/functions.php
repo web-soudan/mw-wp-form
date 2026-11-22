@@ -210,6 +210,33 @@ class MWF_Functions {
 	}
 
 	/**
+	 * Delete attached files of the inquiry data.
+	 * Only attachments whose parent is the inquiry data are deleted.
+	 *
+	 * @param int $post_id Inquiry data post ID.
+	 * @return void
+	 */
+	public static function delete_contact_data_attachments( $post_id ) {
+		$post_type = get_post_type( $post_id );
+		if ( ! $post_type || ! self::is_contact_data_post_type( $post_type ) ) {
+			return;
+		}
+
+		$attachment_ids = get_children(
+			array(
+				'post_parent' => $post_id,
+				'post_type'   => 'attachment',
+				'post_status' => 'any',
+				'fields'      => 'ids',
+			)
+		);
+
+		foreach ( $attachment_ids as $attachment_id ) {
+			wp_delete_attachment( $attachment_id, true );
+		}
+	}
+
+	/**
 	 * Return true when correct file type.
 	 *
 	 * @param string $filepath Uploaded file path.
