@@ -81,7 +81,7 @@ class MW_WP_Form_CSV {
 		// エンコード
 		foreach ( $rows as $row ) {
 			foreach ( $row as $column_name => $column ) {
-				$row[ $column_name ] = $this->_escape_double_quote( $column );
+				$row[ $column_name ] = $this->_escape_double_quote( $this->_escape_leading_character( $column ) );
 			}
 			$csv .= implode( ',', $row ) . "\r\n";
 		}
@@ -215,6 +215,20 @@ class MW_WP_Form_CSV {
 		}
 		wp_reset_postdata();
 		return $rows;
+	}
+
+	/**
+	 * Prefix a single quote to values starting with a special character.
+	 *
+	 * @param mixed $value Value.
+	 * @return string
+	 */
+	protected function _escape_leading_character( $value ) {
+		$value = (string) $value;
+		if ( '' !== $value && false !== strpos( "=+-@\t\r\n", $value[0] ) ) {
+			$value = "'" . $value;
+		}
+		return $value;
 	}
 
 	/**
