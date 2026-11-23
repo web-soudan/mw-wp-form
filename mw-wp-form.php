@@ -69,6 +69,9 @@ class MW_WP_Form {
 		add_action( 'after_setup_theme', array( $this, '_after_setup_theme' ), 11 );
 		add_action( 'init', array( $this, '_register_post_type' ) );
 		add_action( 'template_redirect', array( $this, '_do_empty_temp_dir' ) );
+		add_action( 'before_delete_post', array( 'MWF_Functions', 'delete_contact_data_attachments' ) );
+
+		new MW_WP_Form_Upload_Field_Restriction_Controller();
 	}
 
 	/**
@@ -242,6 +245,8 @@ class MW_WP_Form {
 			}
 
 			foreach ( $data_posts as $data_post ) {
+				// The before_delete_post hook is not registered while uninstalling.
+				MWF_Functions::delete_contact_data_attachments( $data_post->ID );
 				wp_delete_post( $data_post->ID, true );
 			}
 		}

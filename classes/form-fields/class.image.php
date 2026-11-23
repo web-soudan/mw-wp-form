@@ -140,4 +140,10 @@ class MW_WP_Form_Field_Image extends MW_WP_Form_Abstract_Form_Field {
 		</p>
 		<?php
 	}
+
+	/**
+	 * Since 5.2, this form tag can no longer be added from the tag generator.
+	 */
+	public function add_tag_generator() {
+	}
 }
