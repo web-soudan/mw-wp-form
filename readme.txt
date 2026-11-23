@@ -86,6 +86,7 @@ Do you have questions or issues with MW WP Form? Use these support channels appr
 * Changed The [mwform_file] and [mwform_image] form tags can no longer be added to or changed in forms. Those already saved in a form continue to work, and others are removed when the form is saved.
 * Changed Removed [mwform_file] and [mwform_image] from the form tag generator
 * Changed Updated the admin notice for forms using [mwform_file] / [mwform_image]
+* Fixed PHP 8.4 deprecation notice for an implicitly nullable parameter in the validation rule base class. Thanks to mohsenny.
 
 = 5.1.9 =
 * Security Hardened session handling
