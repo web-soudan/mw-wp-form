@@ -901,3 +901,8 @@ Do you have questions or issues with MW WP Form? Use these support channels appr
 
 = 0.5 =
 * Initial release.
+
+== Upgrade Notice ==
+
+= 5.2.0 =
+Attached files of inquiry data are now deleted when the inquiry data is permanently deleted. Download any files you need before deleting inquiry data. [mwform_file] and [mwform_image] can no longer be added to forms; those already saved keep working.
