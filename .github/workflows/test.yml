@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Cache node modules
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       env:
         cache-name: cache-node-modules
       with:
@@ -26,7 +26,7 @@ jobs:
           ${{ runner.os }}-
 
     - name: Use Node.js 20.x
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: 20.x
 
